@@ -2,8 +2,9 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { RegisterDto } from './dto/register';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login';
-import { AuthGuard } from '@nestjs/passport';
+
 import { Request } from 'express';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -19,7 +20,7 @@ export class AuthController {
     return await this.authService.login(dto);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@Req() req: Request) {
     const email = (req.user as any).email;
