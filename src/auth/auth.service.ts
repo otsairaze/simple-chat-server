@@ -1,12 +1,15 @@
-import { RefreshToken } from './../../node_modules/.prisma/client/index.d';
-import { BadRequestException, Injectable, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { RegisterDto } from './dto/register';
 import { PrismaService } from 'prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dto/login';
 import { UserService } from 'src/user/user.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +18,7 @@ export class AuthService {
     private jwtService: JwtService,
     private readonly userService: UserService,
   ) {}
-  async register(dto: RegisterDto) {
+  async register(dto: RegisterDto, @Res() res) {
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -33,7 +36,7 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
-        fullName: dto.fullName,
+        username: dto.username,
         password: hash,
       },
     });
@@ -56,14 +59,13 @@ export class AuthService {
       throw new BadRequestException('Не удалось создать токены.');
     }
 
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        token: refreshToken,
-      },
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
 
-    return { accessToken, refreshToken };
+    return accessToken;
   }
 
   async login(dto: LoginDto) {
