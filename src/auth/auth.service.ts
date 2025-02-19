@@ -41,19 +41,7 @@ export class AuthService {
       },
     });
 
-    const accessToken = this.jwtService.sign(
-      {
-        email: dto.email,
-      },
-      { secret: process.env.JWT_SECRET, expiresIn: '15m' },
-    );
-
-    const refreshToken = this.jwtService.sign(
-      {
-        email: dto.email,
-      },
-      { secret: process.env.JWT_REFRESH, expiresIn: '30d' },
-    );
+    const { accessToken, refreshToken } = await this.getTokens(user.email);
 
     if (!accessToken || !refreshToken) {
       throw new BadRequestException('Не удалось создать токены.');
@@ -83,12 +71,7 @@ export class AuthService {
       throw new BadRequestException('Неверный пароль.');
     }
 
-    const accessToken = this.jwtService.sign(
-      {
-        email: user.email,
-      },
-      { secret: process.env.JWT_SECRET, expiresIn: '30m' },
-    );
+    const { accessToken } = await this.getTokens(user.email);
 
     return accessToken;
   }
@@ -97,5 +80,20 @@ export class AuthService {
     return await this.userService.getUser({
       email,
     });
+  }
+
+  async getTokens(email: string) {
+    const accessToken = this.jwtService.sign({
+      email,
+    });
+
+    const refreshToken = this.jwtService.sign(
+      {
+        email,
+      },
+      { secret: process.env.JWT_REFRESH, expiresIn: '30d' },
+    );
+
+    return { accessToken, refreshToken };
   }
 }

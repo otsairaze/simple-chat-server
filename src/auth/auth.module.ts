@@ -10,7 +10,7 @@ import { JwtStrategy } from 'src/strategy/jwt.strategy';
   imports: [
     JwtModule.register({
       secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1h' },
+      signOptions: { expiresIn: '30d' },
     }),
   ],
   providers: [AuthService, PrismaService, UserService, JwtStrategy],

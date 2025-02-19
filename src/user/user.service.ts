@@ -11,7 +11,12 @@ export class UserService {
       throw new BadRequestException('Пользователь не найден');
     }
 
-    return await this.prisma.user.findFirst({ where: { email, id } });
+    return await this.prisma.user.findFirst({
+      where: { email, id },
+      include: {
+        Contact: true,
+      },
+    });
   }
 
   async getUsers() {
